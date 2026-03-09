@@ -29,3 +29,6 @@ const generateResponse = async (prompt) => {
   const data = await res.json()
   return data;
 };
+
+
+export default generateResponse

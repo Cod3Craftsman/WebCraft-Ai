@@ -1,3 +1,4 @@
+
 export const getCurrentUser = async (req, res) => {
   try {
     const user = req.user;
@@ -9,3 +10,5 @@ export const getCurrentUser = async (req, res) => {
     return res.status(500).json({ message: `getCurrentUser error ${error}` });
   }
 };
+
+
