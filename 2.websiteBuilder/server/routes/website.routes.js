@@ -1,8 +1,12 @@
 import express from "express"
-import { generateWebsite } from "../controllers/website.controller.js"
+import { generateWebsite, getWebsiteById , getAll, changes} from "../controllers/website.controller.js"
+import isAuth from "../middlewares/isAuth.js";
 const websiteRouter = express.Router()
 
 
-websiteRouter.post("/generate" , generateWebsite)
+websiteRouter.post("/generate" , isAuth, generateWebsite)
+websiteRouter.put("/update/:id" , isAuth, changes)
+websiteRouter.get("/get-by-id/:id" , isAuth, getWebsiteById)
+websiteRouter.get("/get-all" , isAuth, getAll)
 
 export default websiteRouter;

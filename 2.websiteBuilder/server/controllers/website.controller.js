@@ -157,29 +157,39 @@ export const generateWebsite = async (req, res) => {
     if (!prompt) {
       return res.status(400).json({ message: "Prompt is required" });
     }
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
-    if(user.credits < 50){
-      return res.status(400).json({message : 'Insufficient credits. At least 50 credits are required to generate a website.'})
+    if (user.credits < 50) {
+      return res.status(400).json({
+        message:
+          "Insufficient credits. At least 50 credits are required to generate a website.",
+      });
     }
 
-    const finalPrompt = masterPrompt.replace("USER_PROMPT", prompt);
+    const finalPrompt = masterPrompt.replace("{USER_PROMPT}", prompt);
     let raw = "";
     let parsed = null;
 
     for (let i = 0; i < 2 && !parsed; i++) {
-      raw = await generateResponse(finalPrompt);
+      const response = await generateResponse(finalPrompt);
+      raw = response?.choices?.[0]?.message?.content || "";
+
       parsed = await extractJson(raw);
+
       if (!parsed) {
-        generateResponse(finalPrompt + "\n\nRETURN ONLY RAW JSON.");
+        const retry = await generateResponse(
+          finalPrompt + "\n\nRETURN ONLY RAW JSON.",
+        );
+        raw = retry?.choices?.[0]?.message?.content || "";
+
         parsed = await extractJson(raw);
       }
     }
 
-    if (!parsed.code) {
+    if (!parsed || !parsed.code) {
       console.log("Website code not found in the response", raw);
       return res.status(400).json({ message: "AI returned invalid response" });
     }
@@ -190,24 +200,142 @@ export const generateWebsite = async (req, res) => {
       latestCode: parsed.code,
       conversation: [
         {
-          role: "ai",
-          content: parsed.message,
-        },
-        {
           role: "user",
           content: prompt,
+        },
+        {
+          role: "ai",
+          content: parsed.message,
         },
       ],
     });
 
-    user.credits -= 50
-    await user.save()
+    user.credits -= 50;
+    await user.save();
 
     return res.status(201).json({
-      websiteId : website._id,
-      remainingCredits : user.credits,
-    })
+      websiteId: website._id,
+      remainingCredits: user.credits,
+    });
   } catch (error) {
-      return res.status(500).json({ message: `generate website error ${error}`});
+    return res.status(500).json({ message: `generate website error ${error}` });
+  }
+};
+
+export const getWebsiteById = async (req, res) => {
+  try {
+    const website = await Website.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!website) {
+      return res.status(400).json({ message: "Website not found" });
+    }
+    return res.status(200).json(website);
+  } catch (error) {
+    return res.status(400).json({ message: `getWebsiteById error ${error}` });
+  }
+};
+
+export const changes = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ message: "Prompt is required" });
+    }
+
+    const website = await Website.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!website) {
+      return res.status(400).json({ message: "Website not found" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.credits < 25) {
+      return res.status(400).json({
+        message:
+          "Insufficient credits. At least 25 credits are required to make changes to your website.",
+      });
+    }
+
+    const updatePrompt = `
+      UPDATE THIS HTML WEBSITE.
+
+      CURRENT CODE: ${website?.latestCode}
+
+      USER REQUEST: ${prompt}
+
+      OUTPUT FORMAT (RAW JSON ONLY):
+      {
+        "message": "Short confirmation",
+        "code": "<UPDATED FULL HTML>"
+      }
+
+    `;
+
+    let raw = "";
+    let parsed = null;
+
+    for (let i = 0; i < 2 && !parsed; i++) {
+      const response = await generateResponse(updatePrompt);
+      raw = response?.choices?.[0]?.message?.content || "";
+
+      parsed = await extractJson(raw);
+
+      if (!parsed) {
+        const retry = await generateResponse(
+          updatePrompt + "\n\nRETURN ONLY RAW JSON.",
+        );
+        raw = retry?.choices?.[0]?.message?.content || "";
+
+        parsed = await extractJson(raw);
+      }
+    }
+
+    if (!parsed || !parsed?.code) {
+      console.log("Website code not found in the response", raw);
+      return res.status(400).json({ message: "AI returned invalid response" });
+    }
+
+    website.conversation.push(
+      { role: "user", content: prompt },
+      { role: "ai", content: parsed.message },
+    );
+
+    website.latestCode = parsed?.code;
+
+    await website.save();
+
+    user.credits -= 25;
+    await user.save();
+
+    return res.status(200).json({
+      message: parsed.message,
+      code: parsed.code,
+      remainingCredits: user.credits,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Error in changing website` });
+  }
+};
+
+export const getAll = async (req, res) => {
+  try {
+    const websites = await Website.find({ user: req.user._id });
+    return res.status(200).json(websites)
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Error in fetching all websites` });
   }
 };
