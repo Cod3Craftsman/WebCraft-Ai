@@ -65,7 +65,7 @@ function Home() {
               :
               <div className="relative">
                 <button className="flex items-center cursor-pointer" onClick={() => setOpenProfile(!openProfile)}>
-                  <img src={userData.avatar || `https://ui-avatars.com/api/?name=${userData.name}`} alt="avatar" className="w-9 h-9 rounded-full border border-white/20 object-cover" />
+                  <img referrerPolicy="no-referrer" src={userData.avatar || `https://ui-avatars.com/api/?name=${userData.name}`} alt="avatar" className="w-9 h-9 rounded-full border border-white/20 object-cover" />
                 </button>
 
                 <AnimatePresence>

@@ -12,6 +12,7 @@ function Generate() {
 
   const handleGenerateWebsite = async () => {
     try {
+      if(prompt === "") return
       const result = await axios.post(`${serverUrl}/api/website/generate`, { prompt }, { withCredentials: true })
       console.log(result)
     } catch (error) {
