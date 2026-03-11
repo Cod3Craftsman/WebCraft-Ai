@@ -43,6 +43,7 @@ const websiteSchema = new mongoose.Schema(
       // unique word in the url
       type: String,
       unique : true,
+      sparse : true,
     },
   },
 

@@ -12,6 +12,20 @@ function Dashboard() {
   const [websites, setWebsites] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [copiedId, setCopiedId] = useState(null)
+
+  const handleDeploy = async (id) => {
+    try {
+      const result = await axios.get(`${serverUrl}/api/website/deploy/${id}`, { withCredentials: true })
+      window.open(`${result.data.url}`, "_blank")
+      setWebsites((prev) => prev.map((w) => w._id === id ? { ...w, deployed: true, deployUrl: result.data.url } : w))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
+
   useEffect(() => {
     const handleGetAllWebsites = async () => {
       setLoading(true)
@@ -27,6 +41,19 @@ function Dashboard() {
     }
     handleGetAllWebsites()
   }, [])
+
+
+  const handleCopy = async (site) => {
+    try {
+      await navigator.clipboard.writeText(site.deployUrl)
+      setCopiedId(site._id)
+      setTimeout(() => {
+        setCopiedId(null)
+      }, 2000);
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <div className='min-h-screen bg-[#050505] text-white'>
       {/* header */}
@@ -67,13 +94,15 @@ function Dashboard() {
 
         {!loading && !error && websites?.length > 0 && (
           <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8'>
-            {websites.map((w, i) => (
-              <motion.div
+            {websites.map((w, i) => {
+              const copied = copiedId === w._id
+              return <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 whileHover={{ y: -6 }}
+                onClick={()=>navigate(`/editor/${w._id}`)}
                 className='rounded-2xl bg-white/5 border border-white/10 overflow-hidden hover:bg-white/10 transition flex flex-col'
               >
                 <div className='relative h-40 bg-black cursor-pointer'>
@@ -87,11 +116,34 @@ function Dashboard() {
                     {new Date(w.updatedAt).toLocaleDateString()}
                   </p>
 
-                  {!w.deployed ? (<button className='mt-auto flex items-center justify-center gap-2 bg-blue-400 rounded-lg px-4 py-2 text-sm font-semibold hover:scale-105 transition cursor-pointer'><Rocket size={18}/>Deploy</button>) : (<button><Share2 size={18}/>Share link</button>)}
+                  {
+                    !w.deployed ? (
+                      <button
+                        className="mt-auto flex items-center justify-center gap-2 bg-blue-500 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-blue-600 hover:scale-105 transition-all duration-200 cursor-pointer shadow-md"
+                        onClick={() => handleDeploy(w._id)}
+                      >
+                        <Rocket size={18} />
+                        Deploy
+                      </button>
+                    ) : (
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleCopy(w)}
+                        className={`mt-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border 
+                          ${copied
+                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                            : "bg-white/10 hover:bg-white/20 border-white/10"
+                          }`}
+                      >
+                        <Share2 size={18} />
+                        {copied ? "Copied!" : "Share Link"}
+                      </motion.button>
+                    )
+                  }
                 </div>
 
               </motion.div>
-            ))}
+            })}
           </div>
         )}
 

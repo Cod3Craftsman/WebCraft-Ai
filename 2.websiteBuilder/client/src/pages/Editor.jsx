@@ -30,7 +30,14 @@ function WebsiteEditor() {
     "Finalizing updates...",
   ]
 
-
+  const handleDeploy = async () => {
+    try {
+      const result = await axios.get(`${serverUrl}/api/website/deploy/${website._id}`, { withCredentials: true })
+      window.open(`${result.data.url}`, "_blank")
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
 
   const handleUpdate = async () => {
@@ -122,9 +129,9 @@ function WebsiteEditor() {
     <div className="h-screen w-screen flex bg-black text-white ">
 
       {/* left-side */}
-      <ArrowLeft size={25} className="rounded-xl mt-5 ml-2 hover:bg-white/10 transition cursor-pointer" onClick={()=>navigate("/")}/>
+      <ArrowLeft size={25} className="rounded-xl mt-5 ml-2 hover:bg-white/10 transition cursor-pointer" onClick={() => navigate("/")} />
       <aside className="hidden lg:flex w-[380px] flex-col border-r border-white/10 bg-black/80 overflow-y-auto custom-scrollbar">
-        <Header onClose={()=>setShowChat(false)}/>
+        <Header onClose={() => setShowChat(false)} />
 
         {/* chat-section */}
         <>
@@ -171,7 +178,9 @@ function WebsiteEditor() {
           {/* LIVE PREVIEW */}
           <span className="text-xs text-zinc-400">LIVE PREVIEW</span>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-sm font-semibold hover:scale-105 transition"><Rocket size={14} />Deploy</button>
+            {website.deployed ? "" : (
+              <button className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-sm font-semibold hover:scale-105 transition" onClick={handleDeploy}><Rocket size={14} />Deploy</button>
+            )}
             <button className="lg:hidden p-2 hover:bg-white/10 transition rounded-lg" onClick={() => setShowChat(true)}><MessageSquare size={18} /></button>
             <button className="p-2 hover:bg-white/10 transition rounded-lg" onClick={() => setShowCode(true)}><Code2 size={18} /></button>
             <button className="p-2 hover:bg-white/10 transition rounded-lg" onClick={() => setShowFullPreview(true)}><Monitor size={18} /></button>
@@ -190,7 +199,7 @@ function WebsiteEditor() {
             exit={{ y: "100%" }}
             className="fixed inset-0 z-[9999] bg-black flex flex-col"
           >
-            <Header onClose={()=>setShowChat(false)}/>
+            <Header onClose={() => setShowChat(false)} />
             <>
               <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
                 {messages.map((m, i) => (
@@ -263,7 +272,7 @@ function WebsiteEditor() {
           <motion.div
             className="fixed inset-0 z-[9999] bg-black"
           >
-            <iframe className="w-full h-full bg-white" srcDoc={code} />
+            <iframe className="w-full h-full bg-white" srcDoc={code} sandbox="allow-scripts allow-same-origin allow-forms" />
             <button className="absolute top-4 right-6 p-2 bg-black/70 rounded-lg hover:bg-black/80 transition cursor-pointer" onClick={() => setShowFullPreview(false)}><X size={14} /></button>
 
           </motion.div>)
@@ -273,12 +282,12 @@ function WebsiteEditor() {
     </div>
   )
 
-  function Header({onClose}) {
+  function Header({ onClose }) {
     return (
       <div className="h-14 px-4 flex items-center justify-between border-b border-white/10">
         <span className="font-semibold truncate text-purple-500">{website.title}</span>
-        {onClose && <button onClick={onClose} className="lg:hidden"><X size={18} color="white"/></button> }
-        
+        {onClose && <button onClick={onClose} className="lg:hidden"><X size={18} color="white" /></button>}
+
       </div>
     )
   }
