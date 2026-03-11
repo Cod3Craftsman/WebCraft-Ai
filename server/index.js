@@ -18,7 +18,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://webcraft-ai-1.onrender.com",
+    origin: [
+      "https://webcraft-ai-1.onrender.com",
+      "http://localhost:5173",      
+   ]
     credentials: true,
   }),
 );
