@@ -129,7 +129,7 @@ function WebsiteEditor() {
     <div className="h-screen w-screen flex bg-black text-white ">
 
       {/* left-side */}
-      <ArrowLeft size={25} className="rounded-xl mt-5 ml-2 hover:bg-white/10 transition cursor-pointer" onClick={() => navigate("/")} />
+      <ArrowLeft size={25} className="rounded-xl mt-5 ml-2 hover:bg-white/10 transition cursor-pointer" onClick={() => navigate("/dashboard")} />
       <aside className="hidden lg:flex w-[380px] flex-col border-r border-white/10 bg-black/80 overflow-y-auto custom-scrollbar">
         <Header onClose={() => setShowChat(false)} />
 

@@ -102,7 +102,7 @@ function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 whileHover={{ y: -6 }}
-                onClick={()=>navigate(`/editor/${w._id}`)}
+                onClick={() => navigate(`/editor/${w._id}`)}
                 className='rounded-2xl bg-white/5 border border-white/10 overflow-hidden hover:bg-white/10 transition flex flex-col'
               >
                 <div className='relative h-40 bg-black cursor-pointer'>
@@ -120,7 +120,10 @@ function Dashboard() {
                     !w.deployed ? (
                       <button
                         className="mt-auto flex items-center justify-center gap-2 bg-blue-500 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-blue-600 hover:scale-105 transition-all duration-200 cursor-pointer shadow-md"
-                        onClick={() => handleDeploy(w._id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeploy(w._id)
+                        }}
                       >
                         <Rocket size={18} />
                         Deploy
@@ -128,7 +131,10 @@ function Dashboard() {
                     ) : (
                       <motion.button
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleCopy(w)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCopy(w)
+                        }}
                         className={`mt-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border 
                           ${copied
                             ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"

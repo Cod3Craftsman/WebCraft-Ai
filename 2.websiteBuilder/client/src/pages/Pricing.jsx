@@ -1,6 +1,10 @@
-import { ArrowLeft, Check, Coins } from "lucide-react"
+import { ArrowLeft, Check, Coins, Flag } from "lucide-react"
 import { motion } from "motion/react"
 import { useNavigate } from "react-router";
+import { useSelector } from "react-redux"
+import axios from "axios";
+import { serverUrl } from "../App";
+import { useState } from "react";
 
 const plans = [
   {
@@ -35,7 +39,7 @@ const plans = [
     key: "enterprise",
     name: "Enterprise",
     price: "₹1299",
-    credits: 5000,
+    credits: 1000,
     description: "Custom solutions for large businesses",
     features: [
       "Everything in Pro",
@@ -43,11 +47,36 @@ const plans = [
       "Custom integrations"
     ],
     popular: false,
-    button: "Contact Sales"
+    button: "Upgrade Now"
   }
 ]
 function Pricing() {
   const navigate = useNavigate()
+  const { userData } = useSelector(state => state.user)
+  const [loading, setLoading] = useState(null)
+
+  const handleBuy = async (planKey) => {
+    if (!userData) {
+      navigate("/")
+      return
+    }
+    if (planKey === "free") {
+      navigate("/dashboard")
+      return
+    }
+
+    setLoading(planKey)
+    try {
+      const result = await axios.post(`${serverUrl}/api/billing`, { planType: planKey }, { withCredentials: true })
+      window.location.href = result.data.sessionUrl
+      setLoading(null)
+    } catch (error) {
+      console.log(error)
+      setLoading(null)
+    }
+  }
+
+
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white px-6 pt-16 pb-24">
@@ -78,7 +107,7 @@ function Pricing() {
             transition={{ delay: i * 0.12 }}
             whileHover={{ y: -14, scale: 1.03 }}
             className={`relative rounded-3xl p-8 border backdrop-blur-xl transition-all ${p.popular ? "border-indigo-500 bg-gradient-to-b from-indigo-500/20 to-transparent shadow-2xl shadow-indigo-500/30" : "border-white/10 bg-white/5 hover:border-indigo-400 hover:bg-white/10"}`}
-            
+
           >
             {p.popular && (
               <span className="absolute top-5 right-5 text-xs px-3 py-1 rounded-full bg-indigo-500">Most popular</span>
@@ -108,8 +137,9 @@ function Pricing() {
 
 
             <motion.button
-              whileTap={{scale : 0.96}}
-              className={`w-full py-3 rounded-xl font-semibold transition ${p.popular ? "bg-indigo-500 hover:bg-indigo-600" : "bg-white/10 hover:bg-white/20"} disabled:opacity-60`}>{p.button}</motion.button>
+              disabled={loading === p.key}
+              whileTap={{ scale: 0.96 }}
+              className={`w-full py-3 rounded-xl font-semibold transition ${p.popular ? "bg-indigo-500 hover:bg-indigo-600" : "bg-white/10 hover:bg-white/20"} disabled:opacity-60`} onClick={() => handleBuy(p.key)}>{loading === p.key ? "Redirecting..." : p.button}</motion.button>
           </motion.div>
         ))}
       </div>
