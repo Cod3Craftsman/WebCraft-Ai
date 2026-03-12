@@ -18,7 +18,7 @@ export const stripeWebhook = async (req, res) => {
     const session = event.data.object;
     const userId = session.metadata.userId;
     const credits = Number(session.metadata.credits);
-    const plan = Number(session.metadata.plan);
+    const plan = session.metadata.plan;
     await User.findByIdAndUpdate(userId, {
       $inc: { credits },
       plan,
