@@ -84,7 +84,7 @@ function Home() {
 
 
 
-                        <button className="md:hidden w-full px-4 py-3 flex items-center gap-2 text-sm border-b border-white/10 hover:bg-white/5 transition">
+                        <button onClick={()=>navigate("/pricing")} className="md:hidden w-full px-4 py-3 flex items-center gap-2 text-sm border-b border-white/10 hover:bg-white/5 transition">
                           <Coins size={14} className="text-yellow-400" />
                           <span className="text-zinc-400">Credits: </span>
                           <span>{userData.credits}</span>
